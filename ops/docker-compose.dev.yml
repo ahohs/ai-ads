@@ -1,0 +1,32 @@
+services:
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: ops-backend-1
+    command: bash -lc "pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../backend:/app
+      - ../data:/data
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: ops-frontend-1
+    # Use npx to ensure it runs even if next isn’t globally linked
+    command: npx next dev -p 3000
+    ports:
+      - "3000:3000"
+    # 👇 ADD THIS LINE to preserve node_modules inside container
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - backend
